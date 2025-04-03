@@ -23,6 +23,7 @@
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "csurf": "^1.10.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
@@ -31,11 +32,9 @@
     "mongoose": "^8.13.1",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.2",
-    "stripe": "^17.7.0"
+    "winston": "^3.17.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "nodemon": "^3.1.9",
-    "supertest": "^7.1.0"
+    "nodemon": "^3.1.9"
   }
 }
