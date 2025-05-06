@@ -5,47 +5,93 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 import connectDB from "./config/db.js";
-import securityMiddleware from "./middleware/securityMiddleware.js";
-import csrf from "csurf";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
-dotenv.config();
-const app = express();
-const csrfProtection = csrf({ cookie: true });
 
+// ES module path fix
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load env variables
+dotenv.config();
+
+// Init Express
+const app = express();
+
+// Connect to DB
 connectDB();
 
+// Set trust proxy (for rate limiting, etc.)
+app.set("trust proxy", 1);
+
+// Middleware
 app.use(express.json());
-app.use(cors({ credentials: true, origin: process.env.CLIENT_URL }));
-app.use(helmet());
-app.use(cookieParser());
-app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));
-app.use(csrfProtection);
+app.use(cookieParser());
+app.use(helmet());
+
+// CORS setup
+const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+// Static files (images) with manual CORS header for uploads
+app.use(
+  "/api/uploads",
+  (req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+    }
+    next();
+  },
+  express.static(path.join(__dirname, "uploads"))
+);
+
+// Rate limiter
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 min
   max: 100,
   message: "Too many requests from this IP, please try again later",
 });
 app.use(limiter);
-app.use(securityMiddleware);
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static("public"));
+// Logger in dev mode
+if (process.env.NODE_ENV !== "production") {
+  app.use(morgan("dev"));
 }
 
-app.use("/api/auth", authRoutes);
+// Routes
+app.use("/api", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/category", categoryRoutes);
+
+// Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
-app.get("/csrf-token", (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
+// Server start
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);

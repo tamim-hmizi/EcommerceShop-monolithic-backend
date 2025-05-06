@@ -4,8 +4,22 @@ import bcrypt from "bcryptjs";
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true, index: true },
-    password: { type: String, required: true },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      match: /^\S+@\S+\.\S+$/,
+    },
+
+    password: {
+      type: String,
+      required: true,
+      select: false,
+      minlength: 8,
+    },
+
     isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
@@ -24,6 +38,12 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.password;
+  return obj;
 };
 
 const User = mongoose.model("User", userSchema);
