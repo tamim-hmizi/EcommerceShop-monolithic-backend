@@ -13,6 +13,8 @@ import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
+import favoriteRoutes from "./routes/favoriteRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 import connectDB from "./config/db.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
@@ -85,6 +87,8 @@ app.use("/api", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/category", categoryRoutes);
+app.use("/api", favoriteRoutes);
+app.use("/api", cartRoutes);
 
 // Error handlers
 app.use(notFound);

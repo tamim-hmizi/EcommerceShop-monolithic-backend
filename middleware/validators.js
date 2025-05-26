@@ -17,6 +17,15 @@ export const loginValidation = [
   body("password").notEmpty().withMessage("Password is required"),
 ];
 
+export const updateProfileValidation = [
+  body("name").optional().notEmpty().withMessage("Name cannot be empty"),
+  body("email").optional().isEmail().withMessage("Enter a valid email"),
+  body("password")
+    .optional()
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters"),
+];
+
 // ----------------------
 // Category Validations
 // ----------------------

@@ -6,11 +6,13 @@ import {
   getUserById,
   updateUser,
   deleteUser,
+  updateUserProfile,
 } from "../controllers/authController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import {
   loginValidation,
   registerValidation,
+  updateProfileValidation,
 } from "../middleware/validators.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 const router = express.Router();
@@ -22,6 +24,15 @@ router.post(
   registerUser
 );
 router.post("/auth/login", loginValidation, validateRequest, loginUser);
+
+// User Routes
+router.put(
+  "/users/profile",
+  protect,
+  updateProfileValidation,
+  validateRequest,
+  updateUserProfile
+);
 
 // Admin Routes
 router.get("/users", protect, admin, getUsers);

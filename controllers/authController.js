@@ -186,3 +186,47 @@ export const deleteUser = async (req, res) => {
     });
   }
 };
+
+// UPDATE USER PROFILE (User)
+export const updateUserProfile = async (req, res) => {
+  const { name, email, password } = req.body;
+  const userId = req.user._id;
+  logger.info(`User updating their own profile: ${userId}`);
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      logger.warn(`User with ID ${userId} not found`);
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update fields if provided
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = password;
+
+    const updatedUser = await user.save();
+    logger.info(`User ${userId} updated their profile`);
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      data: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+        token: req.user.token || generateToken(updatedUser._id),
+      },
+    });
+  } catch (error) {
+    logger.error(`Error updating user profile: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};

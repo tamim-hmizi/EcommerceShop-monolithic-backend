@@ -21,6 +21,13 @@ const userSchema = new mongoose.Schema(
     },
 
     isAdmin: { type: Boolean, default: false },
+
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      }
+    ],
   },
   { timestamps: true }
 );
