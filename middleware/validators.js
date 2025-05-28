@@ -24,6 +24,10 @@ export const updateProfileValidation = [
     .optional()
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters"),
+  body("bio")
+    .optional()
+    .isLength({ max: 500 })
+    .withMessage("Bio cannot exceed 500 characters"),
 ];
 
 // ----------------------

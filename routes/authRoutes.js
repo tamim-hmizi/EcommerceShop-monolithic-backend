@@ -7,6 +7,8 @@ import {
   updateUser,
   deleteUser,
   updateUserProfile,
+  uploadProfilePicture,
+  deleteProfilePicture,
 } from "../controllers/authController.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 import {
@@ -15,6 +17,7 @@ import {
   updateProfileValidation,
 } from "../middleware/validators.js";
 import { validateRequest } from "../middleware/validateRequest.js";
+import { profilePictureUpload } from "../utils/upload.js";
 const router = express.Router();
 
 router.post(
@@ -32,6 +35,20 @@ router.put(
   updateProfileValidation,
   validateRequest,
   updateUserProfile
+);
+
+// Profile Picture Routes
+router.post(
+  "/users/profile/picture",
+  protect,
+  profilePictureUpload.single("profilePicture"),
+  uploadProfilePicture
+);
+
+router.delete(
+  "/users/profile/picture",
+  protect,
+  deleteProfilePicture
 );
 
 // Admin Routes

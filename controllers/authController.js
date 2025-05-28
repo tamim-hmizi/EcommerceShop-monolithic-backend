@@ -1,6 +1,8 @@
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 import logger from "../config/logger.js";
+import { deleteFile, getFullFilePath } from "../utils/upload.js";
+import path from "path";
 
 // REGISTER
 export const registerUser = async (req, res) => {
@@ -57,6 +59,8 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         isAdmin: user.isAdmin,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
         token: generateToken(user._id),
       },
     });
@@ -189,7 +193,7 @@ export const deleteUser = async (req, res) => {
 
 // UPDATE USER PROFILE (User)
 export const updateUserProfile = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, bio } = req.body;
   const userId = req.user._id;
   logger.info(`User updating their own profile: ${userId}`);
 
@@ -207,6 +211,7 @@ export const updateUserProfile = async (req, res) => {
     if (name) user.name = name;
     if (email) user.email = email;
     if (password) user.password = password;
+    if (bio !== undefined) user.bio = bio;
 
     const updatedUser = await user.save();
     logger.info(`User ${userId} updated their profile`);
@@ -219,11 +224,121 @@ export const updateUserProfile = async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         isAdmin: updatedUser.isAdmin,
+        profilePicture: updatedUser.profilePicture,
+        bio: updatedUser.bio,
         token: req.user.token || generateToken(updatedUser._id),
       },
     });
   } catch (error) {
     logger.error(`Error updating user profile: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// UPLOAD PROFILE PICTURE
+export const uploadProfilePicture = async (req, res) => {
+  const userId = req.user._id;
+
+  logger.info(`User ${userId} uploading profile picture`);
+
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      logger.warn(`User with ID ${userId} not found`);
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Delete old profile picture if exists
+    if (user.profilePicture) {
+      const oldFilePath = getFullFilePath(user.profilePicture);
+      deleteFile(oldFilePath);
+    }
+
+    // Update user with new profile picture path
+    const profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
+    user.profilePicture = profilePicturePath;
+
+    const updatedUser = await user.save();
+    logger.info(`User ${userId} uploaded profile picture successfully`);
+
+    res.json({
+      success: true,
+      message: "Profile picture uploaded successfully",
+      data: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+        profilePicture: updatedUser.profilePicture,
+        bio: updatedUser.bio,
+        token: req.user.token || generateToken(updatedUser._id),
+      },
+    });
+  } catch (error) {
+    logger.error(`Error uploading profile picture: ${error.message}`);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+// DELETE PROFILE PICTURE
+export const deleteProfilePicture = async (req, res) => {
+  const userId = req.user._id;
+
+  logger.info(`User ${userId} deleting profile picture`);
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      logger.warn(`User with ID ${userId} not found`);
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Delete profile picture file if exists
+    if (user.profilePicture) {
+      const filePath = getFullFilePath(user.profilePicture);
+      deleteFile(filePath);
+    }
+
+    // Remove profile picture from user
+    user.profilePicture = null;
+    const updatedUser = await user.save();
+
+    logger.info(`User ${userId} deleted profile picture successfully`);
+
+    res.json({
+      success: true,
+      message: "Profile picture deleted successfully",
+      data: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+        profilePicture: updatedUser.profilePicture,
+        bio: updatedUser.bio,
+        token: req.user.token || generateToken(updatedUser._id),
+      },
+    });
+  } catch (error) {
+    logger.error(`Error deleting profile picture: ${error.message}`);
     res.status(500).json({
       success: false,
       message: "Server error",

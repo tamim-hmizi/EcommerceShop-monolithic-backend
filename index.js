@@ -9,12 +9,15 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
+// Import your route files
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+
+// DB connection and error middleware
 import connectDB from "./config/db.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 
@@ -25,24 +28,39 @@ const __dirname = dirname(__filename);
 // Load env variables
 dotenv.config();
 
-// Init Express
+// Init Express app
 const app = express();
 
-// Connect to DB
+// Connect to MongoDB
 connectDB();
 
-// Set trust proxy (for rate limiting, etc.)
+// Trust proxy (for production rate-limiting, etc.)
 app.set("trust proxy", 1);
 
-// Middleware
+// Allowed frontend origins (for CORS)
+const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(helmet());
 
-// CORS setup
-const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+// CORS for API routes
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
+
+// Static images with working CORS for <img src="">
 app.use(
+  "/uploads",
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
@@ -52,37 +70,24 @@ app.use(
       }
     },
     credentials: true,
-  })
-);
-
-// Static files (images) with manual CORS header for uploads
-app.use(
-  "/api/uploads",
-  (req, res, next) => {
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-    }
-    next();
-  },
+  }),
   express.static(path.join(__dirname, "uploads"))
 );
 
-// Rate limiter
+// Rate limiter (optional but useful)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
+  windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
   message: "Too many requests from this IP, please try again later",
 });
 app.use(limiter);
 
-// Logger in dev mode
+// Logging in development
 if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
-// Routes
+// API Routes
 app.use("/api", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
@@ -90,12 +95,12 @@ app.use("/api/category", categoryRoutes);
 app.use("/api", favoriteRoutes);
 app.use("/api", cartRoutes);
 
-// Error handlers
+// Error Handlers
 app.use(notFound);
 app.use(errorHandler);
 
-// Server start
+// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`Server running at http://localhost:${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+});

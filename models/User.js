@@ -22,6 +22,17 @@ const userSchema = new mongoose.Schema(
 
     isAdmin: { type: Boolean, default: false },
 
+    profilePicture: {
+      type: String,
+      default: null,
+    },
+
+    bio: {
+      type: String,
+      maxlength: 500,
+      default: "",
+    },
+
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,
