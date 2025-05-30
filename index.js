@@ -20,9 +20,11 @@ import cartRoutes from "./routes/cartRoutes.js";
 // DB connection and error middleware
 import connectDB from "./config/db.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
+
 // metrics
 import metricsMiddleware from "./middleware/metricsMiddleware.js";
 import metricsRoute from "./routes/metricsRoute.js";
+
 // ES module path fix
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,45 +48,38 @@ const allowedOrigins = [
   "https://omhy.dc2.cloudapp.xpressazure.com",
 ];
 
-// Middlewares
+// CORS middleware
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) {
+      return callback(null, true); // allow requests with no origin (like curl or SSR)
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin); // return exact origin string
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true, // allow cookies and credentials
+};
+
+// Middleware stack
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(helmet());
 app.use(metricsMiddleware);
-// CORS for API routes
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions)); // Apply CORS
 
-// Static images with working CORS for <img src="">
+// Serve static files (uploads) with CORS
 app.use(
   "/uploads",
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  }),
+  cors(corsOptions),
   express.static(path.join(__dirname, "uploads"))
 );
 
-// Rate limiter (optional but useful)
+// Rate limiter
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: "Too many requests from this IP, please try again later",
 });
@@ -103,7 +98,8 @@ app.use("/api/category", categoryRoutes);
 app.use("/api", favoriteRoutes);
 app.use("/api", cartRoutes);
 app.use(metricsRoute);
-// Error Handlers
+
+// Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
