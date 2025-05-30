@@ -40,7 +40,11 @@ connectDB();
 app.set("trust proxy", 1);
 
 // Allowed frontend origins (for CORS)
-const allowedOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://omhy.dc2.cloudapp.xpressazure.com",
+];
 
 // Middlewares
 app.use(express.json());
