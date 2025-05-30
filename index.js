@@ -20,7 +20,9 @@ import cartRoutes from "./routes/cartRoutes.js";
 // DB connection and error middleware
 import connectDB from "./config/db.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
-
+// metrics
+import metricsMiddleware from "./middleware/metricsMiddleware.js";
+import metricsRoute from "./routes/metricsRoute.js";
 // ES module path fix
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,18 +47,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(helmet());
-
+app.use(metricsMiddleware);
 // CORS for API routes
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 // Static images with working CORS for <img src="">
 app.use(
@@ -94,7 +98,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api", favoriteRoutes);
 app.use("/api", cartRoutes);
-
+app.use(metricsRoute);
 // Error Handlers
 app.use(notFound);
 app.use(errorHandler);

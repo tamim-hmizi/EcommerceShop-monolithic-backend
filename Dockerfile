@@ -1,29 +1,25 @@
-# Use an official Node.js image as a base (optimized for security & performance)
+# Base image
 FROM node:22.14.0-alpine AS base
-
-# Set environment variable to avoid unnecessary npm warnings
 ENV NODE_ENV=production
 
-# Create app directory inside the container
+# Create app directory
 WORKDIR /app
 
-# Copy package files separately for efficient caching
-COPY package.json package-lock.json ./ 
-
-# Install only production dependencies
+# Copy dependencies and install only production modules
+COPY package.json package-lock.json ./
 RUN npm install --omit=dev
 
-# Copy the rest of the application code
+# Copy app source
 COPY . .
 
-# Create the 'uploads' directory and set proper permissions
+# Ensure uploads directory exists and is writable
 RUN mkdir -p /app/uploads && chmod -R 777 /app/uploads
 
-# Expose the application port
+# Expose backend API port
 EXPOSE 5000
 
-# Set the user to 'node' which already exists in the base image
+# Run app as 'node' user
 USER node
 
-# Start the application
+# Start the backend
 CMD ["node", "index.js"]
