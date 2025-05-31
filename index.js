@@ -97,7 +97,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api", favoriteRoutes);
 app.use("/api", cartRoutes);
-app.use(metricsRoute);
+app.use("/api",metricsRoute);
 
 // Error handlers
 app.use(notFound);
