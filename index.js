@@ -91,7 +91,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 // API Routes
-app.use("/api",metricsRoute);
+app.use(metricsRoute);
 app.use("/api", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
