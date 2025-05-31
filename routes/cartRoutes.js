@@ -12,28 +12,25 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// All cart routes require authentication
-router.use(protect);
-
 // Get user's cart
-router.get("/cart", getUserCart);
+router.get("/cart", protect, getUserCart);
 
 // Save cart
-router.post("/cart", saveCart);
+router.post("/cart", protect, saveCart);
 
 // Add item to cart
-router.post("/cart/items", addItemToCart);
+router.post("/cart/items", protect, addItemToCart);
 
 // Update cart item
-router.put("/cart/items/:itemId", updateCartItem);
+router.put("/cart/items/:itemId", protect, updateCartItem);
 
 // Remove cart item
-router.delete("/cart/items/:itemId", removeCartItem);
+router.delete("/cart/items/:itemId", protect, removeCartItem);
 
 // Clear cart
-router.delete("/cart", clearCart);
+router.delete("/cart", protect, clearCart);
 
 // Merge guest cart
-router.post("/cart/merge", mergeGuestCart);
+router.post("/cart/merge", protect, mergeGuestCart);
 
 export default router;

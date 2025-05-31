@@ -9,19 +9,18 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// All routes are protected - require authentication
-router.use(protect);
+
 
 // Get all favorites
-router.get("/favorites", getFavorites);
+router.get("/favorites",protect, getFavorites);
 
 // Check if product is in favorites
-router.get("/favorites/:productId", checkFavorite);
+router.get("/favorites/:productId",protect, checkFavorite);
 
 // Add product to favorites
-router.post("/favorites/:productId", addToFavorites);
+router.post("/favorites/:productId",protect, addToFavorites);
 
 // Remove product from favorites
-router.delete("/favorites/:productId", removeFromFavorites);
+router.delete("/favorites/:productId",protect, removeFromFavorites);
 
 export default router;
