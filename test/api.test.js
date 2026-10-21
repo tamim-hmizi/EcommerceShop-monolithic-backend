@@ -12,7 +12,7 @@ const { default: User } = await import("../models/User.js");
 describe("monolith API", () => {
   before(async () => {
     const uri = process.env.MONGO_URI ?? "mongodb://127.0.0.1:27017";
-    await mongoose.connect(uri, { dbName: `test-monolith-${process.pid}` });
+    await mongoose.connect(uri, { dbName: `test-monolith-${process.pid}`, serverSelectionTimeoutMS: 60000 });
   });
   beforeEach(async () => {
     await Promise.all(
