@@ -57,6 +57,17 @@ npm start
 
 There is no build step and no test suite.
 
+## Tests
+
+Integration tests use Node's built-in test runner and Supertest against a real MongoDB:
+
+```bash
+docker run -d --name mongo -p 27017:27017 mongo:8
+MONGO_URI=mongodb://127.0.0.1:27017 npm test
+```
+
+CI runs the same suite with a MongoDB service container on every push and pull request.
+
 ## Docker
 
 ```bash
