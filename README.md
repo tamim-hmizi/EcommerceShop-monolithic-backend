@@ -76,4 +76,4 @@ The image is based on `node:22-alpine`, installs production dependencies only an
 
 ---
 
-Part of the MERN e-commerce use case for QuickOps, 2025, by Tamim Hmizi — https://tamim-hmizi.github.io/Portfolio/
+Part of the MERN e-commerce use case for QuickOps, 2025, by Tamim Hmizi: https://tamim-hmizi.github.io/Portfolio/
