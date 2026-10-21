@@ -4,10 +4,16 @@ import logger from "../config/logger.js";
 // CREATE
 export const createCategory = async (req, res) => {
   const { name, description } = req.body;
+  if (typeof name !== "string") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid category name",
+    });
+  }
   logger.info(`Attempting to create category: ${name}`);
 
   try {
-    const existing = await Category.findOne({ name });
+    const existing = await Category.findOne({ name: { $eq: name } });
     if (existing) {
       return res.status(400).json({
         success: false,
