@@ -1,5 +1,6 @@
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
+import mongoose from "mongoose";
 import logger from "../config/logger.js";
 
 // GET USER CART
@@ -44,8 +45,12 @@ export const saveCart = async (req, res) => {
     // Validate and update cart items
     const validatedItems = [];
     for (const item of items) {
+      const productId = item.product || item._id;
+      if (typeof productId !== "string" || !mongoose.Types.ObjectId.isValid(productId)) {
+        continue;
+      }
       // Verify product exists and is in stock
-      const product = await Product.findById(item.product || item._id);
+      const product = await Product.findOne({ _id: { $eq: productId } });
       if (product) {
         // Ensure quantity doesn't exceed stock
         const quantity = Math.min(item.quantity, product.stock);
@@ -90,7 +95,14 @@ export const addItemToCart = async (req, res) => {
     }
 
     // Verify product exists and is in stock
-    const product = await Product.findById(item._id || item.product);
+    const productId = item._id || item.product;
+    if (typeof productId !== "string" || !mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+    }
+    const product = await Product.findOne({ _id: { $eq: productId } });
     if (!product) {
       return res.status(404).json({
         success: false,
@@ -274,8 +286,12 @@ export const mergeGuestCart = async (req, res) => {
 
     // Process each item from the guest cart
     for (const item of items) {
+      const productId = item._id || item.product;
+      if (typeof productId !== "string" || !mongoose.Types.ObjectId.isValid(productId)) {
+        continue;
+      }
       // Verify product exists and is in stock
-      const product = await Product.findById(item._id || item.product);
+      const product = await Product.findOne({ _id: { $eq: productId } });
       if (!product) continue;
 
       // Check if item already exists in cart

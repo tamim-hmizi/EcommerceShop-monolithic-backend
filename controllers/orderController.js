@@ -17,7 +17,10 @@ export const createOrder = async (req, res) => {
   try {
     // First, validate that all products have sufficient stock
     for (const item of orderItems) {
-      const product = await Product.findById(item.product);
+      if (typeof item.product !== "string" || !mongoose.Types.ObjectId.isValid(item.product)) {
+        throw new Error(`Product with ID ${item.product} not found`);
+      }
+      const product = await Product.findOne({ _id: { $eq: item.product } });
 
       if (!product) {
         throw new Error(`Product with ID ${item.product} not found`);
@@ -40,13 +43,17 @@ export const createOrder = async (req, res) => {
 
     // Update product stock for each item in the order
     for (const item of orderItems) {
-      await Product.findByIdAndUpdate(
-        item.product,
-        { $inc: { stock: -item.quantity } }, // Decrease stock by the ordered quantity
+      const qty = Number(item.quantity);
+      if (!Number.isFinite(qty) || qty <= 0) {
+        throw new Error("Invalid item quantity");
+      }
+      await Product.findOneAndUpdate(
+        { _id: { $eq: String(item.product) } },
+        { $inc: { stock: -qty } }, // Decrease stock by the ordered quantity
         { new: true }
       );
       logger.info(
-        `Updated stock for product ${item.product}, reduced by ${item.quantity}`
+        `Updated stock for product ${item.product}, reduced by ${qty}`
       );
     }
 

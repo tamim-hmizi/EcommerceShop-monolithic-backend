@@ -7,10 +7,16 @@ import path from "path";
 // REGISTER
 export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
+  if (typeof email !== "string" || typeof password !== "string") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid input",
+    });
+  }
   logger.info(`Registering user: ${name} with email: ${email}`);
 
   try {
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: { $eq: email } });
     if (existingUser) {
       logger.warn(`User with email ${email} already exists`);
       return res.status(400).json({
@@ -38,10 +44,16 @@ export const registerUser = async (req, res) => {
 // LOGIN
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  if (typeof email !== "string" || typeof password !== "string") {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
   logger.info(`Attempting login for email: ${email}`);
 
   try {
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email: { $eq: email } }).select("+password");
     if (!user || !(await user.matchPassword(password))) {
       logger.warn(`Invalid credentials for email: ${email}`);
       return res.status(401).json({
