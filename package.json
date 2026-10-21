@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "test": "node --test --test-concurrency=1"
   },
   "repository": {
     "type": "git",
@@ -21,7 +22,6 @@
   "homepage": "https://github.com/tamim-hmizi/EcommerceShop-monolithic-backend#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
@@ -37,5 +37,8 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.1"
   }
 }
