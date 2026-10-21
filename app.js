@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
 import path from "path";
@@ -51,13 +50,12 @@ const corsOptions = {
     }
     return callback(new Error("Not allowed by CORS"));
   },
-  credentials: true, // allow cookies and credentials
+  credentials: true, // the frontend sends requests with credentials enabled
 };
 
 // Middleware stack
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(helmet());
 app.use(metricsMiddleware);
 app.use(cors(corsOptions)); // Apply CORS
